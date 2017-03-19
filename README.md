@@ -8,5 +8,5 @@ Collection of functions that can be used to generate tileable volume/3d noise. A
 This code is part of the "Physically Based Sky, Atmosphere and Cloud Rendering in Frostbite" presentation from [SIGGRAPH 2016 Course: Physically Based Shading in Theory and Practice](http://blog.selfshadow.com/publications/s2016-shading-course/).
 
 This library uses
- - [GLM]{http://glm.g-truc.net}
- - [LibTarga]{http://research.cs.wisc.edu/graphics/Gallery/LibTarga/}
+ - [GLM](http://glm.g-truc.net)
+ - [LibTarga](http://research.cs.wisc.edu/graphics/Gallery/LibTarga/)
