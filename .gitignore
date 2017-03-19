@@ -1,2 +1,7 @@
 release
 debug
+*.manifest
+*.iobj
+*.ipdb
+*.db
+*.png
