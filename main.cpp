@@ -126,10 +126,13 @@ int main (int argc, char *argv[])
 					const float worleyNoise4 = (1.0f - Tileable3dNoise::WorleyNoise(coord, cellCount * frequenceMul[4]));
 					const float worleyNoise5 = (1.0f - Tileable3dNoise::WorleyNoise(coord, cellCount * frequenceMul[5]));	// half the frequency of texel, we should not go further (with cellCount = 32 and texture size = 64)
 
-																														// PerlinWorley noise as described p.101 of GPU Pro 7
 					float worleyFBM = worleyNoise0*0.625f + worleyNoise1*0.25f + worleyNoise2*0.125f;
 
-					PerlinWorleyNoise = remap(perlinNoise, 0.0, 1.0, worleyFBM, 1.0);
+					// Perlin Worley is based on description in GPU Pro 7: Real Time Volumetric Cloudscapes.
+					// However it is not clear the text and the image are matching: images does not seem to match what the result  from the description in text would give.
+					// Also there are a lot of fudge factor in the code, e.g. *0.2, so it is really up to you to fine the formula you like.
+					//PerlinWorleyNoise = remap(worleyFBM, 0.0, 1.0, 0.0, perlinNoise);	// Matches better what figure 4.7 (not the following up text description p.101). Maps worley between newMin as 0 and 
+					PerlinWorleyNoise = remap(perlinNoise, 0.0, 1.0, worleyFBM, 1.0);	// mapping perlin noise in between worley as minimum and 1.0 as maximum (as described in text of p.101 of GPU Pro 7) 
 				}
 
 				const float cellCount = 4;

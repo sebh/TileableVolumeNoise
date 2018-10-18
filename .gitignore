@@ -6,3 +6,10 @@ debug
 *.db
 *.png
 *.opendb
+
+\.vs/*
+
+noiseErosion\.tga
+noiseErosionPacked\.tga
+noiseShape\.tga
+noiseShapePacked\.tga
