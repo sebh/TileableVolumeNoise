@@ -9,7 +9,7 @@
 
 float Tileable3dNoise::hash(float n)
 {
-	return glm::fract(sin(n+1.951) * 43758.5453);
+	return glm::fract(sin(n+1.951f) * 43758.5453f);
 }
 
 // hash based 3d value noise
@@ -18,16 +18,16 @@ float Tileable3dNoise::noise(const glm::vec3& x)
 	glm::vec3 p = glm::floor(x);
 	glm::vec3 f = glm::fract(x);
 
-	f = f*f*(glm::vec3(3.0) - glm::vec3(2.0) * f);
-	float n = p.x + p.y*57.0 + 113.0*p.z;
+	f = f*f*(glm::vec3(3.0f) - glm::vec3(2.0f) * f);
+	float n = p.x + p.y*57.0f + 113.0f*p.z;
 	return glm::mix(
 		glm::mix(
-			glm::mix(hash(n + 0.0), hash(n + 1.0), f.x),
-			glm::mix(hash(n + 57.0), hash(n + 58.0), f.x),
+			glm::mix(hash(n + 0.0f), hash(n + 1.0f), f.x),
+			glm::mix(hash(n + 57.0f), hash(n + 58.0f), f.x),
 			f.y),
 		glm::mix(
-			glm::mix(hash(n + 113.0), hash(n + 114.0), f.x),
-			glm::mix(hash(n + 170.0), hash(n + 171.0), f.x),
+			glm::mix(hash(n + 113.0f), hash(n + 114.0f), f.x),
+			glm::mix(hash(n + 170.0f), hash(n + 171.0f), f.x),
 			f.y),
 		f.z);
 }
@@ -78,7 +78,7 @@ float Tileable3dNoise::PerlinNoise(const glm::vec3& pIn, float frequency, int oc
 		//glm::vec3 p(x * freq, y * freq, z * freq);
 		//float val = glm::perlin(p, glm::vec3(freq)) *0.5 + 0.5;
 
-		glm::vec4 p = glm::vec4(pIn.x, pIn.y, pIn.z, 0.0) * glm::vec4(frequency);
+		glm::vec4 p = glm::vec4(pIn.x, pIn.y, pIn.z, 0.0f) * glm::vec4(frequency);
 		float val = glm::perlin(p, glm::vec4(frequency));
 
 		sum += val * weight;
@@ -88,7 +88,7 @@ float Tileable3dNoise::PerlinNoise(const glm::vec3& pIn, float frequency, int oc
 		frequency *= octaveFrenquencyFactor;
 	}
 
-	float noise = (sum / weightSum) *0.5 + 0.5;;
+	float noise = (sum / weightSum) *0.5f + 0.5f;
 	noise = std::fminf(noise, 1.0f);
 	noise = std::fmaxf(noise, 0.0f);
 	return noise;

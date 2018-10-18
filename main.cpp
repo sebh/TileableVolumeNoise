@@ -95,11 +95,11 @@ int main (int argc, char *argv[])
 	//
 
 	// Frequence multiplicator. No boudary check etc. but fine for this small tool.
-	const float frequenceMul[6] = { 2,8,14,20,26,32 };	// special weight for perling worley
+	const float frequenceMul[6] = { 2.0f,8.0f,14.0f,20.0f,26.0f,32.0f };	// special weight for perling worley
 
 														// Cloud base shape (will be used to generate PerlingWorley noise in he shader)
 														// Note: all channels could be combined once here to reduce memory bandwith requirements.
-	unsigned int cloudBaseShapeTextureSize = 128;		// !!! If this is reduce, you hsould also reduce the number of frequency in the fmb noise  !!!
+	int cloudBaseShapeTextureSize = 128;				// !!! If this is reduce, you hsould also reduce the number of frequency in the fmb noise  !!!
 	unsigned char* cloudBaseShapeTexels = (unsigned char*)malloc(cloudBaseShapeTextureSize*cloudBaseShapeTextureSize*cloudBaseShapeTextureSize * sizeof(unsigned char) * 4);
 	unsigned char* cloudBaseShapeTexelsPacked = (unsigned char*)malloc(cloudBaseShapeTextureSize*cloudBaseShapeTextureSize*cloudBaseShapeTextureSize * sizeof(unsigned char) * 4);
 	parallel_for(int(0), int(cloudBaseShapeTextureSize), [&](int s) //for (int s = 0; s<gCloudBaseShapeTextureSize; s++)
@@ -113,7 +113,7 @@ int main (int argc, char *argv[])
 
 				// Perlin FBM noise
 				const int octaveCount = 3;
-				const float frequency = 8;
+				const float frequency = 8.0f;
 				float perlinNoise = Tileable3dNoise::PerlinNoise(coord, frequency, octaveCount);
 
 				float PerlinWorleyNoise = 0.0f;
@@ -132,7 +132,7 @@ int main (int argc, char *argv[])
 					// However it is not clear the text and the image are matching: images does not seem to match what the result  from the description in text would give.
 					// Also there are a lot of fudge factor in the code, e.g. *0.2, so it is really up to you to fine the formula you like.
 					//PerlinWorleyNoise = remap(worleyFBM, 0.0, 1.0, 0.0, perlinNoise);	// Matches better what figure 4.7 (not the following up text description p.101). Maps worley between newMin as 0 and 
-					PerlinWorleyNoise = remap(perlinNoise, 0.0, 1.0, worleyFBM, 1.0);	// mapping perlin noise in between worley as minimum and 1.0 as maximum (as described in text of p.101 of GPU Pro 7) 
+					PerlinWorleyNoise = remap(perlinNoise, 0.0f, 1.0f, worleyFBM, 1.0f);	// mapping perlin noise in between worley as minimum and 1.0 as maximum (as described in text of p.101 of GPU Pro 7) 
 				}
 
 				const float cellCount = 4;
@@ -160,9 +160,9 @@ int main (int argc, char *argv[])
 				float value = 0.0;
 				{
 					// pack the channels for direct usage in shader
-					float lowFreqFBM = worleyFBM0*0.625 + worleyFBM1*0.25 + worleyFBM2*0.125;
+					float lowFreqFBM = worleyFBM0*0.625f + worleyFBM1*0.25f + worleyFBM2*0.125f;
 					float baseCloud = PerlinWorleyNoise;
-					value = remap(baseCloud, -(1.0 - lowFreqFBM), 1.0, 0.0, 1.0);
+					value = remap(baseCloud, -(1.0f - lowFreqFBM), 1.0f, 0.0f, 1.0f);
 					// Saturate
 					value = std::fminf(value, 1.0f);
 					value = std::fmaxf(value, 0.0f);
@@ -191,7 +191,7 @@ int main (int argc, char *argv[])
 
 	// Detail texture behing different frequency of Worley noise
 	// Note: all channels could be combined once here to reduce memory bandwith requirements.
-	unsigned int cloudErosionTextureSize = 32;
+	int cloudErosionTextureSize = 32;
 	unsigned char* cloudErosionTexels = (unsigned char*)malloc(cloudErosionTextureSize*cloudErosionTextureSize*cloudErosionTextureSize * sizeof(unsigned char) * 4);
 	unsigned char* cloudErosionTexelsPacked = (unsigned char*)malloc(cloudErosionTextureSize*cloudErosionTextureSize*cloudErosionTextureSize * sizeof(unsigned char) * 4);
 	parallel_for(int(0), int(cloudErosionTextureSize), [&](int s) //for (int s = 0; s<gCloudErosionTextureSize; s++)
@@ -233,7 +233,7 @@ int main (int argc, char *argv[])
 
 				float value = 0.0;
 				{
-					value = worleyFBM0*0.625 + worleyFBM1*0.25 + worleyFBM2*0.125;
+					value = worleyFBM0*0.625f + worleyFBM1*0.25f + worleyFBM2*0.125f;
 				}
 				cloudErosionTexelsPacked[addr] = unsigned char(255.0f * value);
 				cloudErosionTexelsPacked[addr + 1] = unsigned char(255.0f * value);
