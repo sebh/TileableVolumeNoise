@@ -30,12 +30,11 @@ int main (int argc, char *argv[])
 	//
 	// Exemple of tileable Perlin noise texture generation
 	//
+
+	/*
 	unsigned int gPerlinNoiseTextureSize = 32;
 	unsigned char* perlinNoiseTexels = (unsigned char*)malloc(gPerlinNoiseTextureSize*gPerlinNoiseTextureSize*gPerlinNoiseTextureSize * sizeof(unsigned char));
 
-
-
-	/*
 	// Generate Perlin noise source
 	const glm::vec3 normFactPerlin = glm::vec3(1.0f / float(gPerlinNoiseTextureSize));
 	parallel_for(int(0), int(gPerlinNoiseTextureSize), [&](int s) //for (int s=0; s<giPerlinNoiseTextureSize; s++)
@@ -250,6 +249,7 @@ int main (int argc, char *argv[])
 		writeTGA("noiseErosionPacked.tga", width, height, cloudErosionTexelsPacked);
 	}
 	free(cloudErosionTexels);
+	free(cloudErosionTexelsPacked);
 
     return 0;
 }
