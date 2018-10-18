@@ -326,7 +326,7 @@ int main (int argc, char *argv[])
 
 	auto addrDst = [](auto x, auto y, auto t, auto sliceBytes, auto rowBytes)
 	{
-		return x * sliceBytes + y * sliceBytes * 3 + t * rowBytes;
+		return x * rowBytes + y * sliceBytes * 3 + t * rowBytes * 3;
 	};
 	auto addrSrcXY = [](auto r, auto t, auto sliceBytes, auto rowBytes)
 	{
