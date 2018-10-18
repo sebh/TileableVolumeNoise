@@ -99,8 +99,11 @@ int main (int argc, char *argv[])
 														// Cloud base shape (will be used to generate PerlingWorley noise in he shader)
 														// Note: all channels could be combined once here to reduce memory bandwith requirements.
 	int cloudBaseShapeTextureSize = 128;				// !!! If this is reduce, you hsould also reduce the number of frequency in the fmb noise  !!!
-	unsigned char* cloudBaseShapeTexels = (unsigned char*)malloc(cloudBaseShapeTextureSize*cloudBaseShapeTextureSize*cloudBaseShapeTextureSize * sizeof(unsigned char) * 4);
-	unsigned char* cloudBaseShapeTexelsPacked = (unsigned char*)malloc(cloudBaseShapeTextureSize*cloudBaseShapeTextureSize*cloudBaseShapeTextureSize * sizeof(unsigned char) * 4);
+	int cloudBaseShapeRowBytes = cloudBaseShapeTextureSize * sizeof(unsigned char) * 4;
+	int cloudBaseShapeSliceBytes = cloudBaseShapeRowBytes * cloudBaseShapeTextureSize;
+	int cloudBaseShapeVolumeBytes = cloudBaseShapeSliceBytes * cloudBaseShapeTextureSize;
+	unsigned char* cloudBaseShapeTexels = (unsigned char*)malloc(cloudBaseShapeVolumeBytes);
+	unsigned char* cloudBaseShapeTexelsPacked = (unsigned char*)malloc(cloudBaseShapeVolumeBytes);
 	parallel_for(int(0), int(cloudBaseShapeTextureSize), [&](int s) //for (int s = 0; s<gCloudBaseShapeTextureSize; s++)
 	{
 		const glm::vec3 normFact = glm::vec3(1.0f / float(cloudBaseShapeTextureSize));
@@ -180,8 +183,6 @@ int main (int argc, char *argv[])
 		writeTGA("noiseShape.tga",       width, height, cloudBaseShapeTexels);
 		writeTGA("noiseShapePacked.tga", width, height, cloudBaseShapeTexelsPacked);
 	}
-	free(cloudBaseShapeTexels);
-	free(cloudBaseShapeTexelsPacked);
 
 
 
@@ -191,8 +192,11 @@ int main (int argc, char *argv[])
 	// Detail texture behing different frequency of Worley noise
 	// Note: all channels could be combined once here to reduce memory bandwith requirements.
 	int cloudErosionTextureSize = 32;
-	unsigned char* cloudErosionTexels = (unsigned char*)malloc(cloudErosionTextureSize*cloudErosionTextureSize*cloudErosionTextureSize * sizeof(unsigned char) * 4);
-	unsigned char* cloudErosionTexelsPacked = (unsigned char*)malloc(cloudErosionTextureSize*cloudErosionTextureSize*cloudErosionTextureSize * sizeof(unsigned char) * 4);
+	int cloudErosionRowBytes = cloudErosionTextureSize * sizeof(unsigned char) * 4;
+	int cloudErosionSliceBytes = cloudErosionRowBytes * cloudErosionTextureSize;
+	int cloudErosionVolumeBytes = cloudErosionSliceBytes * cloudErosionTextureSize;
+	unsigned char* cloudErosionTexels = (unsigned char*)malloc(cloudErosionVolumeBytes);
+	unsigned char* cloudErosionTexelsPacked = (unsigned char*)malloc(cloudErosionVolumeBytes);
 	parallel_for(int(0), int(cloudErosionTextureSize), [&](int s) //for (int s = 0; s<gCloudErosionTextureSize; s++)
 	{
 		const glm::vec3 normFact = glm::vec3(1.0f / float(cloudErosionTextureSize));
@@ -248,6 +252,97 @@ int main (int argc, char *argv[])
 		writeTGA("noiseErosion.tga",       width, height, cloudErosionTexels);
 		writeTGA("noiseErosionPacked.tga", width, height, cloudErosionTexelsPacked);
 	}
+
+#if 0
+	// Debug tileability using a 3x3 tile of the same slice, see if edges appears.
+
+	auto debugPrintTileability = [&](auto addrSrc2, auto addrDst2, const char* debugStr) 
+	{
+		for (int r = 0; r < cloudBaseShapeTextureSize; r += cloudBaseShapeTextureSize / 8)
+		{
+			unsigned char* debugImg = (unsigned char*)malloc(9 * cloudBaseShapeSliceBytes);
+			for (int i = 0; i < cloudBaseShapeTextureSize; i++)
+			{
+				int t = i;
+
+				// copy the row into the 9 debug texture tiles
+				auto addrSrc = [&]()
+				{
+					return addrSrc2(r, t, cloudBaseShapeSliceBytes, cloudBaseShapeRowBytes);
+				};
+				auto addrDst = [&](auto x, auto y)
+				{
+					return addrDst2(x, y, t, cloudBaseShapeSliceBytes, cloudBaseShapeRowBytes);
+				};
+
+				memcpy(debugImg + addrDst(0, 0), cloudBaseShapeTexelsPacked + addrSrc(), cloudBaseShapeRowBytes);
+				memcpy(debugImg + addrDst(1, 0), cloudBaseShapeTexelsPacked + addrSrc(), cloudBaseShapeRowBytes);
+				memcpy(debugImg + addrDst(2, 0), cloudBaseShapeTexelsPacked + addrSrc(), cloudBaseShapeRowBytes);
+				memcpy(debugImg + addrDst(0, 1), cloudBaseShapeTexelsPacked + addrSrc(), cloudBaseShapeRowBytes);
+				memcpy(debugImg + addrDst(1, 1), cloudBaseShapeTexelsPacked + addrSrc(), cloudBaseShapeRowBytes);
+				memcpy(debugImg + addrDst(2, 1), cloudBaseShapeTexelsPacked + addrSrc(), cloudBaseShapeRowBytes);
+				memcpy(debugImg + addrDst(0, 2), cloudBaseShapeTexelsPacked + addrSrc(), cloudBaseShapeRowBytes);
+				memcpy(debugImg + addrDst(1, 2), cloudBaseShapeTexelsPacked + addrSrc(), cloudBaseShapeRowBytes);
+				memcpy(debugImg + addrDst(2, 2), cloudBaseShapeTexelsPacked + addrSrc(), cloudBaseShapeRowBytes);
+
+
+			}
+			char fileName[256];
+			sprintf_s(fileName, 256, "debugBase%s%i.tga", debugStr, r);
+			writeTGA(fileName, cloudBaseShapeTextureSize * 3, cloudBaseShapeTextureSize * 3, debugImg);
+		}
+
+		for (int r = 0; r < cloudErosionTextureSize; r += cloudErosionTextureSize / 8)
+		{
+			unsigned char* debugImg = (unsigned char*)malloc(9*cloudErosionSliceBytes);
+			for (int i = 0; i < cloudErosionTextureSize; i++)
+			{
+				int t = i;
+
+				auto addrSrc = [&]()
+				{
+					return addrSrc2(r, t, cloudErosionSliceBytes, cloudErosionRowBytes);
+				};
+				auto addrDst = [&](auto x, auto y)
+				{
+					return addrDst2(x, y, t, cloudErosionSliceBytes, cloudErosionRowBytes);
+				};
+
+				memcpy(debugImg + addrDst(0,0), cloudErosionTexelsPacked + addrSrc(), cloudErosionRowBytes);
+				memcpy(debugImg + addrDst(1,0), cloudErosionTexelsPacked + addrSrc(), cloudErosionRowBytes);
+				memcpy(debugImg + addrDst(2,0), cloudErosionTexelsPacked + addrSrc(), cloudErosionRowBytes);
+				memcpy(debugImg + addrDst(0,1), cloudErosionTexelsPacked + addrSrc(), cloudErosionRowBytes);
+				memcpy(debugImg + addrDst(1,1), cloudErosionTexelsPacked + addrSrc(), cloudErosionRowBytes);
+				memcpy(debugImg + addrDst(2,1), cloudErosionTexelsPacked + addrSrc(), cloudErosionRowBytes);
+				memcpy(debugImg + addrDst(0,2), cloudErosionTexelsPacked + addrSrc(), cloudErosionRowBytes);
+				memcpy(debugImg + addrDst(1,2), cloudErosionTexelsPacked + addrSrc(), cloudErosionRowBytes);
+				memcpy(debugImg + addrDst(2,2), cloudErosionTexelsPacked + addrSrc(), cloudErosionRowBytes);
+			}
+			char fileName[256];
+			sprintf_s(fileName, 256, "debugErosion%s%i.tga", debugStr, r);
+			writeTGA(fileName, cloudErosionTextureSize*3, cloudErosionTextureSize*3, debugImg);
+		}
+	};
+
+	auto addrDst = [](auto x, auto y, auto t, auto sliceBytes, auto rowBytes)
+	{
+		return x * sliceBytes + y * sliceBytes * 3 + t * rowBytes;
+	};
+	auto addrSrcXY = [](auto r, auto t, auto sliceBytes, auto rowBytes)
+	{
+		return r*sliceBytes + t*rowBytes;
+	};
+	auto addrSrcXZ = [](auto r, auto t, auto sliceBytes, auto rowBytes)
+	{
+		return t*sliceBytes + r*rowBytes;
+	};
+
+	debugPrintTileability(addrSrcXY, addrDst, "XY");
+	debugPrintTileability(addrSrcXZ, addrDst, "XZ");
+#endif
+
+	free(cloudErosionTexels);
+	free(cloudErosionTexelsPacked);
 	free(cloudErosionTexels);
 	free(cloudErosionTexelsPacked);
 
