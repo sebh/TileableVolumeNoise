@@ -343,8 +343,8 @@ int main (int argc, char *argv[])
 
 	free(cloudErosionTexels);
 	free(cloudErosionTexelsPacked);
-	free(cloudErosionTexels);
-	free(cloudErosionTexelsPacked);
+	free(cloudBaseShapeTexels);
+	free(cloudBaseShapeTexelsPacked);
 
     return 0;
 }
